@@ -1,0 +1,12 @@
+# SwiftBench
+
+node_modules/
+dist/
+*.log
+*.tgz
+.DS_Store
+Thumbs.db
+coverage/
+.nyc_output/
+*.html
+!docs/*.html
