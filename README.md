@@ -36,8 +36,8 @@ A fast, zero-config API benchmarking tool built for real traffic simulation, acc
 ## Installation
 
 ```bash
-npm install -g swiftbench
-# or
+npm install -g swiftbench 
+# or install as dev dependency
 npm install swiftbench --save-dev
 ```
 
@@ -46,22 +46,19 @@ npm install swiftbench --save-dev
 ### CLI
 
 ```bash
-# Simple benchmark
 swiftbench http://localhost:3000
+# implies -c 50 -d 10 (50 concurrent connections for 10 seconds)
 
-# High-load test
 swiftbench http://localhost:3000 -c 200 -d 30
+# implies -c 200 -d 30 (200 concurrent connections for 30 seconds)
 
-# Rate limited
 swiftbench http://localhost:3000 --rate 1000
+# implies 1000 requests per second
 
-# POST with JSON
 swiftbench http://localhost:3000/api -m POST --json '{"key": "value"}'
 
-# Generate HTML report
 swiftbench http://localhost:3000 --output html -o report.html
 
-# Compare multiple frameworks
 swiftbench --compare http://localhost:3000 http://localhost:3001 http://localhost:3002 -c 100 -d 10
 ```
 
@@ -70,18 +67,23 @@ swiftbench --compare http://localhost:3000 http://localhost:3001 http://localhos
 ```typescript
 import { bench, defineConfig } from "swiftbench";
 
-// Simple benchmark
+/*
+ this is a simple benchmark
+ i.e ==> bench("http://localhost:3000")
+*/
 const result = await bench("http://localhost:3000");
 console.log(`RPS: ${result.throughput.rps}`);
 console.log(`P99: ${result.latency.p99}ms`);
 
-// With options
+/*
+ this is a benchmark with options
+ i.e ==> bench("http://localhost:3000", { connections: 200, duration: 30 })
+*/
 const result = await bench("http://localhost:3000", {
   connections: 200,
   duration: 30
 });
 
-// Full configuration
 const result = await bench({
   url: "http://localhost:3000/api",
   method: "POST",
@@ -91,7 +93,6 @@ const result = await bench({
   duration: 20
 });
 
-// Type-safe config helper
 const config = defineConfig({
   url: "http://localhost:3000",
   connections: 100,
@@ -150,7 +151,6 @@ Clean terminal output with styled tables:
 └──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┘
 ```
 
-### JSON
 
 ```bash
 swiftbench http://localhost:3000 --output json -o result.json
@@ -158,7 +158,6 @@ swiftbench http://localhost:3000 --output json -o result.json
 
 Machine-readable output for CI pipelines and data processing.
 
-### HTML
 
 ```bash
 swiftbench http://localhost:3000 --output html -o report.html
@@ -280,3 +279,15 @@ Contributions are welcome! Please read our contributing guidelines before submit
 ## License
 
 MIT © 2026
+
+## Roadmap
+
+We are constantly improving SwiftBench. Here are some features planned for future releases:
+
+- [ ] **Request Scenarios** - Define complex multi-step flows (e.g., Login → Get Token → API Call)
+- [ ] **GraphQL Support** - First-class support for GraphQL queries and mutations
+- [ ] **Interactive TUI** - Real-time terminal dashboard with live graphs
+- [ ] **Dynamic Payloads** - Generate random data per request using a scripting API
+- [ ] **Custom Reporters** - Plug in your own reporting logic (Datadog, Prometheus, etc.)
+- [ ] **Distributed Testing** - Coordinate multiple machines for massive load simulation
+
