@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="SwiftBench" height="80">
+  <img src="docs/assets/logo.svg" alt="SwiftBench" height="80">
 </p>
 
 # SwiftBench
