@@ -22,7 +22,7 @@
 
   <!-- Wordmark -->
   <text x="140" y="84"
-        fill="#0b0b0f"
+        fill="#ffffff"
         font-size="48"
         font-weight="700"
         letter-spacing="-1.3"
@@ -35,7 +35,7 @@
 
   <!-- Tagline -->
   <text x="140" y="118"
-        fill="#6b7280"
+        fill="#2094c5ff"
         font-size="14"
         font-family="JetBrains Mono, monospace">
     measure speed. trust numbers.
