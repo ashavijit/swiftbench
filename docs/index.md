@@ -9,6 +9,14 @@
 </p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/swiftbench"><img src="https://img.shields.io/npm/v/swiftbench" alt="npm"></a>
+  <a href="https://www.npmjs.com/package/swiftbench"><img src="https://img.shields.io/npm/dw/swiftbench" alt="downloads"></a>
+  <a href="https://www.npmjs.com/package/swiftbench"><img src="https://img.shields.io/npm/dt/swiftbench.svg" alt="total downloads"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/swiftbench" alt="license"></a>
+</p>
+
+
+<p align="center">
   <a href="#installation">Installation</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#features">Features</a> •
