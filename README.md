@@ -21,6 +21,10 @@
 
 A fast, zero-config API benchmarking tool built for real traffic simulation, accurate latency metrics, and CI automation. Built with worker threads and `undici` for maximum performance.
 
+<p align="center">
+  <img src="assets/details.gif" alt="SwiftBench Demo" width="100%">
+</p>
+
 ## Installation
 
 ```bash
