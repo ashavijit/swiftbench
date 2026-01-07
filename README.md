@@ -272,6 +272,20 @@ interface BenchResult {
 
 - Node.js >= 18.0.0
 
+## Comparison
+
+How does SwiftBench compare to other tools?
+
+| Feature | SwiftBench | Autocannon | k6 | wrk |
+|---------|:----------:|:----------:|:--:|:---:|
+| **Language** | Node.js (TS) | Node.js | Go/JS | C |
+| **Zero Config** | ✅ | ✅ | ❌ | ✅ |
+| **CI Quality Gates** | ✅ | ❌ | ✅ | ❌ |
+| **HTML Reports** | ✅ | ❌ | ☁️ | ❌ |
+| **HTTP/2** | ✅ | ✅ | ✅ | ❌ |
+| **Compare Mode** | ✅ | ❌ | ❌ | ❌ |
+| **Scripting** | 🔜 | ✅ | ✅ | ✅ |
+
 ## Contributing
 
 Contributions are welcome! Please read our contributing guidelines before submitting a PR.
