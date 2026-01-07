@@ -126,7 +126,7 @@ export class ConsoleReporter implements Reporter {
    * @param result - Benchmark result
    * @returns Formatted string (also prints to console)
    */
-  async report(result: BenchResult): Promise<string> {
+  report(result: BenchResult): Promise<string> {
     const lines: string[] = [];
     const errorRate = result.requests.total > 0 
       ? ((result.requests.failed / result.requests.total) * 100).toFixed(2)
@@ -210,7 +210,7 @@ export class ConsoleReporter implements Reporter {
 
     process.stdout.write(output);
 
-    return output;
+    return Promise.resolve(output);
   }
 }
 

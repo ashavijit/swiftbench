@@ -1,5 +1,5 @@
 import type { LatencyStats } from "../../types.js";
-import { Histogram } from "./histogram.js";
+import type { Histogram } from "./histogram.js";
 
 /**
  * Calculates percentile statistics from a histogram

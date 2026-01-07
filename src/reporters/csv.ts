@@ -22,7 +22,7 @@ export class CsvReporter implements Reporter {
    * @param result - Benchmark result
    * @returns CSV string
    */
-  async report(result: BenchResult): Promise<string> {
+  report(result: BenchResult): Promise<string> {
     const headers = [
       "url",
       "method",
@@ -86,7 +86,7 @@ export class CsvReporter implements Reporter {
     const headerLine = headers.join(",");
     const valueLine = values.map(escapeCSV).join(",");
 
-    return `${headerLine}\n${valueLine}`;
+    return Promise.resolve(`${headerLine}\n${valueLine}`);
   }
 }
 

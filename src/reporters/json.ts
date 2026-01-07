@@ -19,11 +19,11 @@ export class JsonReporter implements Reporter {
    * @param result - Benchmark result
    * @returns JSON string
    */
-  async report(result: BenchResult): Promise<string> {
+  report(result: BenchResult): Promise<string> {
     if (this.pretty) {
-      return JSON.stringify(result, null, 2);
+      return Promise.resolve(JSON.stringify(result, null, 2));
     }
-    return JSON.stringify(result);
+    return Promise.resolve(JSON.stringify(result));
   }
 }
 

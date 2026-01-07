@@ -61,12 +61,12 @@ export const SUCCESS_STATUS_CODES = new Set([200, 201, 202, 204, 301, 302, 304])
 /**
  * Default HTTP method
  */
-export const DEFAULT_METHOD = "GET" as const;
+export const DEFAULT_METHOD = "GET";
 
 /**
  * Default output format
  */
-export const DEFAULT_OUTPUT_FORMAT = "console" as const;
+export const DEFAULT_OUTPUT_FORMAT = "console";
 
 /**
  * Exit codes for CI integration

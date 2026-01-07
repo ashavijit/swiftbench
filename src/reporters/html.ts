@@ -536,8 +536,8 @@ export class HtmlReporter implements Reporter {
    * @param result - Benchmark result
    * @returns HTML string
    */
-  async report(result: BenchResult): Promise<string> {
-    return generateHtml(result);
+  report(result: BenchResult): Promise<string> {
+    return Promise.resolve(generateHtml(result));
   }
 }
 

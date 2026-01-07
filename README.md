@@ -267,4 +267,4 @@ Contributions are welcome! Please read our contributing guidelines before submit
 
 ## License
 
-MIT © 2024
+MIT © 2026
