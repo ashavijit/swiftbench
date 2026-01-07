@@ -64,13 +64,24 @@ function formatMsShort(ms: number): string {
 }
 
 /**
+ * Strips ANSI color codes from string
+ * @param str - String with color codes
+ * @returns Clean string
+ */
+function stripAnsi(str: string): string {
+  // eslint-disable-next-line no-control-regex
+  return str.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+/**
  * Pads a string to center
  * @param str - String to pad
  * @param width - Target width
  * @returns Centered string
  */
 function center(str: string, width: number): string {
-  const padding = Math.max(0, width - str.length);
+  const visibleLength = stripAnsi(str).length;
+  const padding = Math.max(0, width - visibleLength);
   const left = Math.floor(padding / 2);
   const right = padding - left;
   return " ".repeat(left) + str + " ".repeat(right);
