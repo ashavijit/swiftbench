@@ -1,4 +1,4 @@
-import type { BenchResult, Reporter } from "../types.js";
+import type { BenchResult, Reporter } from '../types.js'
 
 /**
  * Generates HTML report with charts and styling
@@ -6,26 +6,28 @@ import type { BenchResult, Reporter } from "../types.js";
  * @returns Complete HTML document
  */
 function generateHtml(result: BenchResult): string {
-  const errorRate = result.requests.total > 0
-    ? ((result.requests.failed / result.requests.total) * 100).toFixed(2)
-    : "0.00";
-  
-  const successRate = result.requests.total > 0
-    ? ((result.requests.successful / result.requests.total) * 100).toFixed(1)
-    : "100.0";
+  const errorRate =
+    result.requests.total > 0
+      ? ((result.requests.failed / result.requests.total) * 100).toFixed(2)
+      : '0.00'
+
+  const successRate =
+    result.requests.total > 0
+      ? ((result.requests.successful / result.requests.total) * 100).toFixed(1)
+      : '100.0'
 
   const percentiles = [
-    { label: "Min", value: result.latency.min, color: "#22c55e" },
-    { label: "p50", value: result.latency.p50, color: "#3b82f6" },
-    { label: "p75", value: result.latency.p75, color: "#8b5cf6" },
-    { label: "p90", value: result.latency.p90, color: "#f59e0b" },
-    { label: "p95", value: result.latency.p95, color: "#f97316" },
-    { label: "p99", value: result.latency.p99, color: "#ef4444" },
-    { label: "p99.9", value: result.latency.p999, color: "#dc2626" },
-    { label: "Max", value: result.latency.max, color: "#991b1b" }
-  ];
+    { label: 'Min', value: result.latency.min, color: '#22c55e' },
+    { label: 'p50', value: result.latency.p50, color: '#3b82f6' },
+    { label: 'p75', value: result.latency.p75, color: '#8b5cf6' },
+    { label: 'p90', value: result.latency.p90, color: '#f59e0b' },
+    { label: 'p95', value: result.latency.p95, color: '#f97316' },
+    { label: 'p99', value: result.latency.p99, color: '#ef4444' },
+    { label: 'p99.9', value: result.latency.p999, color: '#dc2626' },
+    { label: 'Max', value: result.latency.max, color: '#991b1b' }
+  ]
 
-  const maxLatency = result.latency.max || 1;
+  const maxLatency = result.latency.max || 1
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -357,7 +359,9 @@ function generateHtml(result: BenchResult): string {
           <span class="card-badge">Percentiles</span>
         </div>
         <div class="latency-bars">
-          ${percentiles.map(p => `
+          ${percentiles
+            .map(
+              p => `
             <div class="latency-row">
               <span class="latency-label">${p.label}</span>
               <div class="latency-bar-container">
@@ -365,7 +369,9 @@ function generateHtml(result: BenchResult): string {
               </div>
               <span class="latency-value">${p.value < 1 ? (p.value * 1000).toFixed(0) + ' µs' : p.value.toFixed(2) + ' ms'}</span>
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
       </div>
       
@@ -453,31 +459,49 @@ function generateHtml(result: BenchResult): string {
       </div>
     </div>
 
-    ${result.errors.timeouts > 0 || result.errors.connectionErrors > 0 || Object.keys(result.errors.byStatusCode).length > 0 ? `
+    ${
+      result.errors.timeouts > 0 ||
+      result.errors.connectionErrors > 0 ||
+      Object.keys(result.errors.byStatusCode).length > 0
+        ? `
     <div class="card" style="margin-bottom: 2rem;">
       <div class="card-header">
         <h2 class="card-title">Error Breakdown</h2>
         <span class="card-badge" style="background: var(--error-glow); color: var(--error);">Issues Detected</span>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-        ${result.errors.timeouts > 0 ? `
+        ${
+          result.errors.timeouts > 0
+            ? `
         <div class="detail-item">
           <span class="detail-label">Timeouts</span>
           <span class="detail-value" style="color: var(--error);">${result.errors.timeouts.toLocaleString()}</span>
-        </div>` : ''}
-        ${result.errors.connectionErrors > 0 ? `
+        </div>`
+            : ''
+        }
+        ${
+          result.errors.connectionErrors > 0
+            ? `
         <div class="detail-item">
           <span class="detail-label">Connection Errors</span>
           <span class="detail-value" style="color: var(--error);">${result.errors.connectionErrors.toLocaleString()}</span>
-        </div>` : ''}
-        ${Object.entries(result.errors.byStatusCode).map(([code, count]) => `
+        </div>`
+            : ''
+        }
+        ${Object.entries(result.errors.byStatusCode)
+          .map(
+            ([code, count]) => `
         <div class="detail-item">
           <span class="detail-label">HTTP ${code}</span>
           <span class="detail-value" style="color: var(--error);">${count.toLocaleString()}</span>
-        </div>`).join('')}
+        </div>`
+          )
+          .join('')}
       </div>
     </div>
-    ` : ''}
+    `
+        : ''
+    }
 
     <footer class="footer">
       <p>Generated by <strong>SwiftBench</strong> v${result.meta.version} | Node ${result.meta.nodeVersion} | ${result.meta.platform}</p>
@@ -524,7 +548,7 @@ function generateHtml(result: BenchResult): string {
     });
   </script>
 </body>
-</html>`;
+</html>`
 }
 
 /**
@@ -537,7 +561,7 @@ export class HtmlReporter implements Reporter {
    * @returns HTML string
    */
   report(result: BenchResult): Promise<string> {
-    return Promise.resolve(generateHtml(result));
+    return Promise.resolve(generateHtml(result))
   }
 }
 
@@ -546,5 +570,5 @@ export class HtmlReporter implements Reporter {
  * @returns HTML reporter instance
  */
 export function createHtmlReporter(): Reporter {
-  return new HtmlReporter();
+  return new HtmlReporter()
 }

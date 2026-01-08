@@ -1,15 +1,11 @@
-import { Worker } from "node:worker_threads";
-import { cpus } from "node:os";
-import { resolve } from "node:path";
+import { Worker } from 'node:worker_threads'
+import { cpus } from 'node:os'
+import { resolve } from 'node:path'
 
-import type {
-  BenchConfig,
-  BenchResult,
-  WorkerConfig
-} from "../../types.js";
-import type { WorkerRequest, WorkerResponse } from "../worker/messages.js";
-import { MetricsAggregator } from "../metrics/aggregator.js";
-import { LifecycleManager } from "./lifecycle.js";
+import type { BenchConfig, BenchResult, WorkerConfig } from '../../types.js'
+import type { WorkerRequest, WorkerResponse } from '../worker/messages.js'
+import { MetricsAggregator } from '../metrics/aggregator.js'
+import { LifecycleManager } from './lifecycle.js'
 import {
   DEFAULT_CONNECTIONS,
   DEFAULT_DURATION_SEC,
@@ -17,32 +13,32 @@ import {
   DEFAULT_METHOD,
   MAX_WORKERS,
   VERSION
-} from "../../constants.js";
+} from '../../constants.js'
 
 /**
  * Normalized config with required fields
  */
 type NormalizedConfig = {
-  url: string;
-  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS";
-  headers: Record<string, string>;
-  body: string | Buffer | null;
-  connections: number;
-  duration: number;
-  rate: number | null;
-  timeout: number;
-  rampUp: number;
-  warmup: number;
-  http2: boolean;
-  output: "console" | "json" | "html" | "csv";
-  outputFile?: string;
+  url: string
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+  headers: Record<string, string>
+  body: string | Buffer | null
+  connections: number
+  duration: number
+  rate: number | null
+  timeout: number
+  rampUp: number
+  warmup: number
+  http2: boolean
+  output: 'console' | 'json' | 'html' | 'csv'
+  outputFile?: string
   thresholds?: {
-    p99?: number;
-    p95?: number;
-    errorRate?: number;
-    minRps?: number;
-  };
-};
+    p99?: number
+    p95?: number
+    errorRate?: number
+    minRps?: number
+  }
+}
 
 /**
  * Normalizes benchmark configuration with defaults
@@ -62,10 +58,10 @@ function normalizeConfig(config: BenchConfig): NormalizedConfig {
     rampUp: config.rampUp ?? 0,
     warmup: config.warmup ?? 0,
     http2: config.http2 ?? false,
-    output: config.output ?? "console",
+    output: config.output ?? 'console',
     outputFile: config.outputFile,
     thresholds: config.thresholds
-  };
+  }
 }
 
 /**
@@ -74,8 +70,8 @@ function normalizeConfig(config: BenchConfig): NormalizedConfig {
  * @returns Number of workers to spawn
  */
 function calculateWorkerCount(connections: number): number {
-  const cpuCount = Math.max(1, cpus().length);
-  return Math.min(MAX_WORKERS, cpuCount, connections);
+  const cpuCount = Math.max(1, cpus().length)
+  return Math.min(MAX_WORKERS, cpuCount, connections)
 }
 
 /**
@@ -83,31 +79,31 @@ function calculateWorkerCount(connections: number): number {
  * @returns Absolute path to worker script
  */
 function getWorkerPath(): string {
-  return resolve(__dirname, "..", "core", "worker", "worker.js");
+  return resolve(__dirname, '..', 'core', 'worker', 'worker.js')
 }
 
 /**
  * Main benchmark orchestrator
  */
 export class Orchestrator {
-  private readonly config: NormalizedConfig;
-  private readonly aggregator: MetricsAggregator = new MetricsAggregator();
-  private readonly workers: Map<number, Worker> = new Map();
-  private readonly lifecycle: LifecycleManager;
-  private workerCount: number;
-  private completedWorkers: number = 0;
-  private resolvePromise: ((result: BenchResult) => void) | null = null;
-  private rejectPromise: ((error: Error) => void) | null = null;
-  private startTime: number = 0;
+  private readonly config: NormalizedConfig
+  private readonly aggregator: MetricsAggregator = new MetricsAggregator()
+  private readonly workers: Map<number, Worker> = new Map()
+  private readonly lifecycle: LifecycleManager
+  private workerCount: number
+  private completedWorkers: number = 0
+  private resolvePromise: ((result: BenchResult) => void) | null = null
+  private rejectPromise: ((error: Error) => void) | null = null
+  private startTime: number = 0
 
   /**
    * Creates a benchmark orchestrator
    * @param config - Benchmark configuration
    */
   constructor(config: BenchConfig) {
-    this.config = normalizeConfig(config);
-    this.workerCount = calculateWorkerCount(this.config.connections);
-    this.lifecycle = new LifecycleManager(this.config.duration, this.config.warmup);
+    this.config = normalizeConfig(config)
+    this.workerCount = calculateWorkerCount(this.config.connections)
+    this.lifecycle = new LifecycleManager(this.config.duration, this.config.warmup)
   }
 
   /**
@@ -116,18 +112,18 @@ export class Orchestrator {
    */
   async run(): Promise<BenchResult> {
     return new Promise((resolve, reject) => {
-      this.resolvePromise = resolve;
-      this.rejectPromise = reject;
+      this.resolvePromise = resolve
+      this.rejectPromise = reject
 
       try {
-        this.startTime = performance.now();
-        this.lifecycle.start();
-        this.spawnWorkers();
+        this.startTime = performance.now()
+        this.lifecycle.start()
+        this.spawnWorkers()
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Failed to start benchmark";
-        reject(new Error(message));
+        const message = err instanceof Error ? err.message : 'Failed to start benchmark'
+        reject(new Error(message))
       }
-    });
+    })
   }
 
   /**
@@ -135,8 +131,8 @@ export class Orchestrator {
    */
   stop(): void {
     for (const worker of this.workers.values()) {
-      const stopMessage: WorkerRequest = { type: "stop" };
-      worker.postMessage(stopMessage);
+      const stopMessage: WorkerRequest = { type: 'stop' }
+      worker.postMessage(stopMessage)
     }
   }
 
@@ -147,21 +143,21 @@ export class Orchestrator {
     for (let i = 0; i < this.workerCount; i++) {
       const worker = new Worker(getWorkerPath(), {
         workerData: { workerId: i }
-      });
+      })
 
-      worker.on("message", (message: WorkerResponse) => {
-        this.handleWorkerMessage(i, message);
-      });
+      worker.on('message', (message: WorkerResponse) => {
+        this.handleWorkerMessage(i, message)
+      })
 
-      worker.on("error", (error: Error) => {
-        this.handleWorkerError(error);
-      });
+      worker.on('error', (error: Error) => {
+        this.handleWorkerError(error)
+      })
 
-      worker.on("exit", (code: number) => {
-        this.handleWorkerExit(i, code);
-      });
+      worker.on('exit', (code: number) => {
+        this.handleWorkerExit(i, code)
+      })
 
-      this.workers.set(i, worker);
+      this.workers.set(i, worker)
     }
   }
 
@@ -172,19 +168,19 @@ export class Orchestrator {
    */
   private handleWorkerMessage(workerId: number, message: WorkerResponse): void {
     switch (message.type) {
-      case "ready":
-        this.startWorker(workerId);
-        break;
-      case "metrics":
-        this.aggregator.addSnapshot(message.payload);
-        break;
-      case "done":
-        this.aggregator.addSnapshot(message.payload);
-        this.handleWorkerComplete();
-        break;
-      case "error":
-        this.handleWorkerError(new Error(message.message));
-        break;
+      case 'ready':
+        this.startWorker(workerId)
+        break
+      case 'metrics':
+        this.aggregator.addSnapshot(message.payload)
+        break
+      case 'done':
+        this.aggregator.addSnapshot(message.payload)
+        this.handleWorkerComplete()
+        break
+      case 'error':
+        this.handleWorkerError(new Error(message.message))
+        break
     }
   }
 
@@ -193,15 +189,14 @@ export class Orchestrator {
    * @param workerId - Worker identifier
    */
   private startWorker(workerId: number): void {
-    const worker = this.workers.get(workerId);
+    const worker = this.workers.get(workerId)
     if (worker === undefined) {
-      return;
+      return
     }
 
-    const connectionsPerWorker = Math.ceil(this.config.connections / this.workerCount);
-    const ratePerWorker = this.config.rate !== null
-      ? Math.ceil(this.config.rate / this.workerCount)
-      : null;
+    const connectionsPerWorker = Math.ceil(this.config.connections / this.workerCount)
+    const ratePerWorker =
+      this.config.rate !== null ? Math.ceil(this.config.rate / this.workerCount) : null
 
     const workerConfig: WorkerConfig = {
       id: workerId,
@@ -214,20 +209,20 @@ export class Orchestrator {
       rate: ratePerWorker,
       timeout: this.config.timeout,
       http2: this.config.http2
-    };
+    }
 
-    const startMessage: WorkerRequest = { type: "start", config: workerConfig };
-    worker.postMessage(startMessage);
+    const startMessage: WorkerRequest = { type: 'start', config: workerConfig }
+    worker.postMessage(startMessage)
   }
 
   /**
    * Handles worker completion
    */
   private handleWorkerComplete(): void {
-    this.completedWorkers++;
+    this.completedWorkers++
 
     if (this.completedWorkers >= this.workerCount) {
-      this.finalize();
+      this.finalize()
     }
   }
 
@@ -236,8 +231,8 @@ export class Orchestrator {
    * @param error - Error that occurred
    */
   private handleWorkerError(error: Error): void {
-    this.stop();
-    this.rejectPromise?.(error);
+    this.stop()
+    this.rejectPromise?.(error)
   }
 
   /**
@@ -246,10 +241,10 @@ export class Orchestrator {
    * @param code - Exit code
    */
   private handleWorkerExit(workerId: number, code: number): void {
-    this.workers.delete(workerId);
+    this.workers.delete(workerId)
 
     if (code !== 0 && this.completedWorkers < this.workerCount) {
-      this.handleWorkerError(new Error(`Worker ${workerId} exited with code ${code}`));
+      this.handleWorkerError(new Error(`Worker ${workerId} exited with code ${code}`))
     }
   }
 
@@ -257,11 +252,11 @@ export class Orchestrator {
    * Finalizes benchmark and creates result
    */
   private finalize(): void {
-    const endTime = performance.now();
-    const durationMs = endTime - this.startTime;
-    const durationSec = durationMs / 1000;
+    const endTime = performance.now()
+    const durationMs = endTime - this.startTime
+    const durationSec = durationMs / 1000
 
-    const metrics = this.aggregator.getMetrics();
+    const metrics = this.aggregator.getMetrics()
 
     const result: BenchResult = {
       url: this.config.url,
@@ -287,11 +282,11 @@ export class Orchestrator {
         nodeVersion: process.version,
         platform: process.platform
       }
-    };
+    }
 
-    this.cleanup();
-    this.lifecycle.complete();
-    this.resolvePromise?.(result);
+    this.cleanup()
+    this.lifecycle.complete()
+    this.resolvePromise?.(result)
   }
 
   /**
@@ -301,9 +296,9 @@ export class Orchestrator {
     for (const worker of this.workers.values()) {
       worker.terminate().catch(() => {
         // Ignore termination errors
-      });
+      })
     }
-    this.workers.clear();
+    this.workers.clear()
   }
 }
 
@@ -313,6 +308,6 @@ export class Orchestrator {
  * @returns Benchmark result
  */
 export async function runBenchmark(config: BenchConfig): Promise<BenchResult> {
-  const orchestrator = new Orchestrator(config);
-  return orchestrator.run();
+  const orchestrator = new Orchestrator(config)
+  return orchestrator.run()
 }

@@ -22,6 +22,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.{ts,js,json}\"",
     "test": "node --test",
     "prepublishOnly": "npm run build"
   },
@@ -48,6 +49,7 @@
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.57.0",
+    "prettier": "^3.7.4",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0"
   }

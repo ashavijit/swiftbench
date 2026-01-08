@@ -2,20 +2,20 @@
  * Token bucket rate limiter for stable RPS under bursty scheduling
  */
 export class RateLimiter {
-  private readonly ratePerSecond: number;
-  private readonly intervalMs: number;
-  private tokens: number;
-  private lastRefill: number;
+  private readonly ratePerSecond: number
+  private readonly intervalMs: number
+  private tokens: number
+  private lastRefill: number
 
   /**
    * Creates a token bucket rate limiter
    * @param ratePerSecond - Maximum requests per second
    */
   constructor(ratePerSecond: number) {
-    this.ratePerSecond = ratePerSecond;
-    this.intervalMs = 1000 / ratePerSecond;
-    this.tokens = ratePerSecond;
-    this.lastRefill = performance.now();
+    this.ratePerSecond = ratePerSecond
+    this.intervalMs = 1000 / ratePerSecond
+    this.tokens = ratePerSecond
+    this.lastRefill = performance.now()
   }
 
   /**
@@ -23,17 +23,17 @@ export class RateLimiter {
    * @returns Promise that resolves when token is acquired
    */
   async acquire(): Promise<void> {
-    this.refill();
+    this.refill()
 
     if (this.tokens >= 1) {
-      this.tokens -= 1;
-      return;
+      this.tokens -= 1
+      return
     }
 
-    const waitTime = this.intervalMs - (performance.now() - this.lastRefill) % this.intervalMs;
-    await this.sleep(Math.max(0, waitTime));
-    this.refill();
-    this.tokens -= 1;
+    const waitTime = this.intervalMs - ((performance.now() - this.lastRefill) % this.intervalMs)
+    await this.sleep(Math.max(0, waitTime))
+    this.refill()
+    this.tokens -= 1
   }
 
   /**
@@ -41,14 +41,14 @@ export class RateLimiter {
    * @returns True if token was acquired
    */
   tryAcquire(): boolean {
-    this.refill();
+    this.refill()
 
     if (this.tokens >= 1) {
-      this.tokens -= 1;
-      return true;
+      this.tokens -= 1
+      return true
     }
 
-    return false;
+    return false
   }
 
   /**
@@ -56,8 +56,8 @@ export class RateLimiter {
    * @returns Available tokens
    */
   getTokens(): number {
-    this.refill();
-    return this.tokens;
+    this.refill()
+    return this.tokens
   }
 
   /**
@@ -65,20 +65,20 @@ export class RateLimiter {
    * @returns Rate per second
    */
   getRate(): number {
-    return this.ratePerSecond;
+    return this.ratePerSecond
   }
 
   /**
    * Refills tokens based on elapsed time
    */
   private refill(): void {
-    const now = performance.now();
-    const elapsed = now - this.lastRefill;
-    const tokensToAdd = (elapsed / 1000) * this.ratePerSecond;
+    const now = performance.now()
+    const elapsed = now - this.lastRefill
+    const tokensToAdd = (elapsed / 1000) * this.ratePerSecond
 
     if (tokensToAdd >= 1) {
-      this.tokens = Math.min(this.ratePerSecond, this.tokens + tokensToAdd);
-      this.lastRefill = now;
+      this.tokens = Math.min(this.ratePerSecond, this.tokens + tokensToAdd)
+      this.lastRefill = now
     }
   }
 
@@ -88,7 +88,7 @@ export class RateLimiter {
    * @returns Promise that resolves after delay
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms))
   }
 }
 
@@ -99,7 +99,7 @@ export class RateLimiter {
  */
 export function createRateLimiter(rate: number | null): RateLimiter | null {
   if (rate === null || rate <= 0) {
-    return null;
+    return null
   }
-  return new RateLimiter(rate);
+  return new RateLimiter(rate)
 }

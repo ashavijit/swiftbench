@@ -10,16 +10,16 @@ export type {
   ScenarioConfig,
   ScenarioStep,
   Reporter
-} from "./types.js";
+} from './types.js'
 
-export { runBenchmark } from "./core/orchestrator/orchestrator.js";
-export { createConsoleReporter } from "./reporters/console.js";
-export { createJsonReporter } from "./reporters/json.js";
-export { createHtmlReporter } from "./reporters/html.js";
-export { createCsvReporter } from "./reporters/csv.js";
+export { runBenchmark } from './core/orchestrator/orchestrator.js'
+export { createConsoleReporter } from './reporters/console.js'
+export { createJsonReporter } from './reporters/json.js'
+export { createHtmlReporter } from './reporters/html.js'
+export { createCsvReporter } from './reporters/csv.js'
 
-import type { BenchConfig, BenchOptions, BenchResult } from "./types.js";
-import { runBenchmark } from "./core/orchestrator/orchestrator.js";
+import type { BenchConfig, BenchOptions, BenchResult } from './types.js'
+import { runBenchmark } from './core/orchestrator/orchestrator.js'
 
 /**
  * Runs a benchmark against a URL
@@ -44,20 +44,20 @@ import { runBenchmark } from "./core/orchestrator/orchestrator.js";
  *   duration: 20
  * });
  */
-export async function bench(url: string, options?: BenchOptions): Promise<BenchResult>;
-export async function bench(config: BenchConfig): Promise<BenchResult>;
+export async function bench(url: string, options?: BenchOptions): Promise<BenchResult>
+export async function bench(config: BenchConfig): Promise<BenchResult>
 export async function bench(
   urlOrConfig: string | BenchConfig,
   options?: BenchOptions
 ): Promise<BenchResult> {
-  if (typeof urlOrConfig === "string") {
+  if (typeof urlOrConfig === 'string') {
     const config: BenchConfig = {
       url: urlOrConfig,
       ...options
-    };
-    return runBenchmark(config);
+    }
+    return runBenchmark(config)
   }
-  return runBenchmark(urlOrConfig);
+  return runBenchmark(urlOrConfig)
 }
 
 /**
@@ -72,5 +72,5 @@ export async function bench(
  * });
  */
 export function defineConfig(config: BenchConfig): BenchConfig {
-  return config;
+  return config
 }

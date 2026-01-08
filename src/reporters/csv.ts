@@ -1,4 +1,4 @@
-import type { BenchResult, Reporter } from "../types.js";
+import type { BenchResult, Reporter } from '../types.js'
 
 /**
  * Escapes a value for CSV
@@ -6,11 +6,11 @@ import type { BenchResult, Reporter } from "../types.js";
  * @returns Escaped string
  */
 function escapeCSV(value: string | number): string {
-  const str = String(value);
-  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-    return `"${str.replace(/"/g, '""')}"`;
+  const str = String(value)
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`
   }
-  return str;
+  return str
 }
 
 /**
@@ -24,34 +24,34 @@ export class CsvReporter implements Reporter {
    */
   report(result: BenchResult): Promise<string> {
     const headers = [
-      "url",
-      "method",
-      "timestamp",
-      "duration_sec",
-      "connections",
-      "rate_limit",
-      "total_requests",
-      "successful_requests",
-      "failed_requests",
-      "rps",
-      "bytes_per_sec",
-      "total_bytes",
-      "latency_min_ms",
-      "latency_max_ms",
-      "latency_mean_ms",
-      "latency_stddev_ms",
-      "latency_p50_ms",
-      "latency_p75_ms",
-      "latency_p90_ms",
-      "latency_p95_ms",
-      "latency_p99_ms",
-      "latency_p999_ms",
-      "errors_timeouts",
-      "errors_connection",
-      "version",
-      "node_version",
-      "platform"
-    ];
+      'url',
+      'method',
+      'timestamp',
+      'duration_sec',
+      'connections',
+      'rate_limit',
+      'total_requests',
+      'successful_requests',
+      'failed_requests',
+      'rps',
+      'bytes_per_sec',
+      'total_bytes',
+      'latency_min_ms',
+      'latency_max_ms',
+      'latency_mean_ms',
+      'latency_stddev_ms',
+      'latency_p50_ms',
+      'latency_p75_ms',
+      'latency_p90_ms',
+      'latency_p95_ms',
+      'latency_p99_ms',
+      'latency_p999_ms',
+      'errors_timeouts',
+      'errors_connection',
+      'version',
+      'node_version',
+      'platform'
+    ]
 
     const values = [
       result.url,
@@ -59,7 +59,7 @@ export class CsvReporter implements Reporter {
       result.timestamp,
       result.duration,
       result.connections,
-      result.rate ?? "",
+      result.rate ?? '',
       result.requests.total,
       result.requests.successful,
       result.requests.failed,
@@ -81,12 +81,12 @@ export class CsvReporter implements Reporter {
       result.meta.version,
       result.meta.nodeVersion,
       result.meta.platform
-    ];
+    ]
 
-    const headerLine = headers.join(",");
-    const valueLine = values.map(escapeCSV).join(",");
+    const headerLine = headers.join(',')
+    const valueLine = values.map(escapeCSV).join(',')
 
-    return Promise.resolve(`${headerLine}\n${valueLine}`);
+    return Promise.resolve(`${headerLine}\n${valueLine}`)
   }
 }
 
@@ -95,5 +95,5 @@ export class CsvReporter implements Reporter {
  * @returns CSV reporter instance
  */
 export function createCsvReporter(): Reporter {
-  return new CsvReporter();
+  return new CsvReporter()
 }

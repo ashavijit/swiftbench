@@ -1,5 +1,5 @@
-import type { LatencyStats } from "../../types.js";
-import type { Histogram } from "./histogram.js";
+import type { LatencyStats } from '../../types.js'
+import type { Histogram } from './histogram.js'
 
 /**
  * Calculates percentile statistics from a histogram
@@ -7,7 +7,7 @@ import type { Histogram } from "./histogram.js";
  * @returns Latency statistics in milliseconds
  */
 export function calculatePercentiles(histogram: Histogram): LatencyStats {
-  const toMs = (us: number): number => us / 1000;
+  const toMs = (us: number): number => us / 1000
 
   return {
     min: toMs(histogram.getMin()),
@@ -20,7 +20,7 @@ export function calculatePercentiles(histogram: Histogram): LatencyStats {
     p95: toMs(histogram.getPercentile(95)),
     p99: toMs(histogram.getPercentile(99)),
     p999: toMs(histogram.getPercentile(99.9))
-  };
+  }
 }
 
 /**
@@ -30,8 +30,8 @@ export function calculatePercentiles(histogram: Histogram): LatencyStats {
  * @returns Rounded value
  */
 export function roundTo(value: number, decimals: number = 2): number {
-  const factor = Math.pow(10, decimals);
-  return Math.round(value * factor) / factor;
+  const factor = Math.pow(10, decimals)
+  return Math.round(value * factor) / factor
 }
 
 /**
@@ -51,5 +51,5 @@ export function formatLatencyStats(stats: LatencyStats): LatencyStats {
     p95: roundTo(stats.p95),
     p99: roundTo(stats.p99),
     p999: roundTo(stats.p999)
-  };
+  }
 }

@@ -1,21 +1,21 @@
-import type { WorkerConfig, MetricsSnapshot, ErrorBreakdown } from "../../types.js";
-import { HttpClient } from "../http/client.js";
-import { createRateLimiter } from "../scheduler/rate-limiter.js";
-import type { RateLimiter } from "../scheduler/rate-limiter.js";
-import { SUCCESS_STATUS_CODES, METRICS_INTERVAL_MS } from "../../constants.js";
+import type { WorkerConfig, MetricsSnapshot, ErrorBreakdown } from '../../types.js'
+import { HttpClient } from '../http/client.js'
+import { createRateLimiter } from '../scheduler/rate-limiter.js'
+import type { RateLimiter } from '../scheduler/rate-limiter.js'
+import { SUCCESS_STATUS_CODES, METRICS_INTERVAL_MS } from '../../constants.js'
 
 /**
  * Request loop state
  */
 type LoopState = {
-  running: boolean;
-  requests: number;
-  successful: number;
-  failed: number;
-  bytes: number;
-  latencies: number[];
-  errors: ErrorBreakdown;
-};
+  running: boolean
+  requests: number
+  successful: number
+  failed: number
+  bytes: number
+  latencies: number[]
+  errors: ErrorBreakdown
+}
 
 /**
  * Creates initial loop state
@@ -34,7 +34,7 @@ function createInitialState(): LoopState {
       connectionErrors: 0,
       byStatusCode: {}
     }
-  };
+  }
 }
 
 /**
@@ -44,10 +44,10 @@ function createInitialState(): LoopState {
  */
 function extractPath(url: string): string {
   try {
-    const parsed = new URL(url);
-    return parsed.pathname + parsed.search;
+    const parsed = new URL(url)
+    return parsed.pathname + parsed.search
   } catch {
-    return "/";
+    return '/'
   }
 }
 
@@ -55,32 +55,32 @@ function extractPath(url: string): string {
  * Main request loop running in worker thread
  */
 export class RequestLoop {
-  private readonly config: WorkerConfig;
-  private readonly client: HttpClient;
-  private readonly rateLimiter: RateLimiter | null;
-  private readonly path: string;
-  private state: LoopState;
-  private metricsCallback: ((snapshot: MetricsSnapshot) => void) | null = null;
-  private metricsInterval: ReturnType<typeof setInterval> | null = null;
+  private readonly config: WorkerConfig
+  private readonly client: HttpClient
+  private readonly rateLimiter: RateLimiter | null
+  private readonly path: string
+  private state: LoopState
+  private metricsCallback: ((snapshot: MetricsSnapshot) => void) | null = null
+  private metricsInterval: ReturnType<typeof setInterval> | null = null
 
   /**
    * Creates a request loop
    * @param config - Worker configuration
    */
   constructor(config: WorkerConfig) {
-    this.config = config;
-    this.path = extractPath(config.url);
-    this.state = createInitialState();
+    this.config = config
+    this.path = extractPath(config.url)
+    this.state = createInitialState()
 
-    const baseUrl = new URL(config.url).origin;
+    const baseUrl = new URL(config.url).origin
     this.client = new HttpClient({
       baseUrl,
       connections: config.connections,
       timeout: config.timeout,
       http2: config.http2
-    });
+    })
 
-    this.rateLimiter = createRateLimiter(config.rate);
+    this.rateLimiter = createRateLimiter(config.rate)
   }
 
   /**
@@ -88,7 +88,7 @@ export class RequestLoop {
    * @param callback - Function to call with metrics
    */
   onMetrics(callback: (snapshot: MetricsSnapshot) => void): void {
-    this.metricsCallback = callback;
+    this.metricsCallback = callback
   }
 
   /**
@@ -96,40 +96,40 @@ export class RequestLoop {
    * @returns Final metrics snapshot
    */
   async run(): Promise<MetricsSnapshot> {
-    const endTime = performance.now() + this.config.duration * 1000;
+    const endTime = performance.now() + this.config.duration * 1000
 
-    this.startMetricsReporting();
+    this.startMetricsReporting()
 
     while (this.state.running && performance.now() < endTime) {
       if (this.rateLimiter !== null) {
-        await this.rateLimiter.acquire();
+        await this.rateLimiter.acquire()
       }
 
       if (!this.state.running) {
-        break;
+        break
       }
 
-      await this.executeRequest();
+      await this.executeRequest()
     }
 
-    this.stopMetricsReporting();
-    await this.client.close();
+    this.stopMetricsReporting()
+    await this.client.close()
 
-    return this.getSnapshot();
+    return this.getSnapshot()
   }
 
   /**
    * Stops the request loop
    */
   stop(): void {
-    this.state.running = false;
+    this.state.running = false
   }
 
   /**
    * Executes a single HTTP request
    */
   private async executeRequest(): Promise<void> {
-    this.state.requests++;
+    this.state.requests++
 
     try {
       const response = await this.client.execute(
@@ -137,29 +137,29 @@ export class RequestLoop {
         this.path,
         this.config.headers,
         this.config.body
-      );
+      )
 
-      this.state.latencies.push(response.latencyUs);
-      this.state.bytes += response.bytes;
+      this.state.latencies.push(response.latencyUs)
+      this.state.bytes += response.bytes
 
       if (SUCCESS_STATUS_CODES.has(response.statusCode)) {
-        this.state.successful++;
+        this.state.successful++
       } else {
-        this.state.failed++;
-        const count = this.state.errors.byStatusCode[response.statusCode] ?? 0;
-        this.state.errors.byStatusCode[response.statusCode] = count + 1;
+        this.state.failed++
+        const count = this.state.errors.byStatusCode[response.statusCode] ?? 0
+        this.state.errors.byStatusCode[response.statusCode] = count + 1
       }
     } catch (err: unknown) {
-      this.state.failed++;
+      this.state.failed++
 
       if (err instanceof Error) {
-        if (err.message.includes("timeout") || err.name === "TimeoutError") {
-          this.state.errors.timeouts++;
+        if (err.message.includes('timeout') || err.name === 'TimeoutError') {
+          this.state.errors.timeouts++
         } else {
-          this.state.errors.connectionErrors++;
+          this.state.errors.connectionErrors++
         }
       } else {
-        this.state.errors.connectionErrors++;
+        this.state.errors.connectionErrors++
       }
     }
   }
@@ -169,14 +169,14 @@ export class RequestLoop {
    */
   private startMetricsReporting(): void {
     if (this.metricsCallback === null) {
-      return;
+      return
     }
 
     this.metricsInterval = setInterval(() => {
       if (this.metricsCallback !== null) {
-        this.metricsCallback(this.getSnapshot());
+        this.metricsCallback(this.getSnapshot())
       }
-    }, METRICS_INTERVAL_MS);
+    }, METRICS_INTERVAL_MS)
   }
 
   /**
@@ -184,8 +184,8 @@ export class RequestLoop {
    */
   private stopMetricsReporting(): void {
     if (this.metricsInterval !== null) {
-      clearInterval(this.metricsInterval);
-      this.metricsInterval = null;
+      clearInterval(this.metricsInterval)
+      this.metricsInterval = null
     }
   }
 
@@ -202,6 +202,6 @@ export class RequestLoop {
       bytes: this.state.bytes,
       latencies: [...this.state.latencies],
       errors: { ...this.state.errors, byStatusCode: { ...this.state.errors.byStatusCode } }
-    };
+    }
   }
 }

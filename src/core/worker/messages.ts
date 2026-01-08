@@ -1,20 +1,18 @@
-import type { WorkerConfig, MetricsSnapshot, ErrorBreakdown } from "../../types.js";
+import type { WorkerConfig, MetricsSnapshot, ErrorBreakdown } from '../../types.js'
 
 /**
  * Worker request messages (main thread -> worker)
  */
-export type WorkerRequest =
-  | { type: "start"; config: WorkerConfig }
-  | { type: "stop" };
+export type WorkerRequest = { type: 'start'; config: WorkerConfig } | { type: 'stop' }
 
 /**
  * Worker response messages (worker -> main thread)
  */
 export type WorkerResponse =
-  | { type: "ready"; workerId: number }
-  | { type: "metrics"; payload: MetricsSnapshot }
-  | { type: "done"; payload: MetricsSnapshot }
-  | { type: "error"; workerId: number; message: string };
+  | { type: 'ready'; workerId: number }
+  | { type: 'metrics'; payload: MetricsSnapshot }
+  | { type: 'done'; payload: MetricsSnapshot }
+  | { type: 'error'; workerId: number; message: string }
 
 /**
  * Creates an empty error breakdown
@@ -25,7 +23,7 @@ export function createEmptyErrorBreakdown(): ErrorBreakdown {
     timeouts: 0,
     connectionErrors: 0,
     byStatusCode: {}
-  };
+  }
 }
 
 /**
@@ -42,5 +40,5 @@ export function createEmptyMetricsSnapshot(workerId: number): MetricsSnapshot {
     bytes: 0,
     latencies: [],
     errors: createEmptyErrorBreakdown()
-  };
+  }
 }

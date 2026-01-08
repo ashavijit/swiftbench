@@ -1,23 +1,23 @@
-import { HISTOGRAM_BUCKETS, MAX_LATENCY_US, BUCKET_WIDTH_US } from "../../constants.js";
+import { HISTOGRAM_BUCKETS, MAX_LATENCY_US, BUCKET_WIDTH_US } from '../../constants.js'
 
-import type { HistogramData } from "../../types.js";
+import type { HistogramData } from '../../types.js'
 
 /**
  * High-performance histogram for latency tracking
  * Uses pre-allocated Uint32Array to avoid allocations in hot path
  */
 export class Histogram {
-  private readonly buckets: Uint32Array;
-  private count: number = 0;
-  private min: number = Number.MAX_SAFE_INTEGER;
-  private max: number = 0;
-  private sum: number = 0;
+  private readonly buckets: Uint32Array
+  private count: number = 0
+  private min: number = Number.MAX_SAFE_INTEGER
+  private max: number = 0
+  private sum: number = 0
 
   /**
    * Creates a new histogram with pre-allocated buckets
    */
   constructor() {
-    this.buckets = new Uint32Array(HISTOGRAM_BUCKETS);
+    this.buckets = new Uint32Array(HISTOGRAM_BUCKETS)
   }
 
   /**
@@ -25,22 +25,22 @@ export class Histogram {
    * @param valueUs - Latency in microseconds
    */
   record(valueUs: number): void {
-    const clampedValue = Math.min(valueUs, MAX_LATENCY_US - 1);
-    const bucketIndex = Math.floor(clampedValue / BUCKET_WIDTH_US);
-    const safeIndex = Math.min(bucketIndex, HISTOGRAM_BUCKETS - 1);
+    const clampedValue = Math.min(valueUs, MAX_LATENCY_US - 1)
+    const bucketIndex = Math.floor(clampedValue / BUCKET_WIDTH_US)
+    const safeIndex = Math.min(bucketIndex, HISTOGRAM_BUCKETS - 1)
 
-    const current = this.buckets[safeIndex];
+    const current = this.buckets[safeIndex]
     if (current !== undefined) {
-      this.buckets[safeIndex] = current + 1;
+      this.buckets[safeIndex] = current + 1
     }
-    this.count++;
-    this.sum += valueUs;
+    this.count++
+    this.sum += valueUs
 
     if (valueUs < this.min) {
-      this.min = valueUs;
+      this.min = valueUs
     }
     if (valueUs > this.max) {
-      this.max = valueUs;
+      this.max = valueUs
     }
   }
 
@@ -49,7 +49,7 @@ export class Histogram {
    * @returns Total count
    */
   getCount(): number {
-    return this.count;
+    return this.count
   }
 
   /**
@@ -57,7 +57,7 @@ export class Histogram {
    * @returns Minimum value in microseconds
    */
   getMin(): number {
-    return this.count > 0 ? this.min : 0;
+    return this.count > 0 ? this.min : 0
   }
 
   /**
@@ -65,7 +65,7 @@ export class Histogram {
    * @returns Maximum value in microseconds
    */
   getMax(): number {
-    return this.max;
+    return this.max
   }
 
   /**
@@ -73,7 +73,7 @@ export class Histogram {
    * @returns Mean in microseconds
    */
   getMean(): number {
-    return this.count > 0 ? this.sum / this.count : 0;
+    return this.count > 0 ? this.sum / this.count : 0
   }
 
   /**
@@ -81,7 +81,7 @@ export class Histogram {
    * @returns Sum in microseconds
    */
   getSum(): number {
-    return this.sum;
+    return this.sum
   }
 
   /**
@@ -91,23 +91,23 @@ export class Histogram {
    */
   getPercentile(percentile: number): number {
     if (this.count === 0) {
-      return 0;
+      return 0
     }
 
-    const targetCount = Math.ceil((percentile / 100) * this.count);
-    let cumulative = 0;
+    const targetCount = Math.ceil((percentile / 100) * this.count)
+    let cumulative = 0
 
     for (let i = 0; i < HISTOGRAM_BUCKETS; i++) {
-      const bucketValue = this.buckets[i];
+      const bucketValue = this.buckets[i]
       if (bucketValue !== undefined) {
-        cumulative += bucketValue;
+        cumulative += bucketValue
       }
       if (cumulative >= targetCount) {
-        return (i + 0.5) * BUCKET_WIDTH_US;
+        return (i + 0.5) * BUCKET_WIDTH_US
       }
     }
 
-    return MAX_LATENCY_US;
+    return MAX_LATENCY_US
   }
 
   /**
@@ -116,24 +116,24 @@ export class Histogram {
    */
   getStdDev(): number {
     if (this.count < 2) {
-      return 0;
+      return 0
     }
 
-    const mean = this.getMean();
-    let sumSquaredDiff = 0;
-    let counted = 0;
+    const mean = this.getMean()
+    let sumSquaredDiff = 0
+    let counted = 0
 
     for (let i = 0; i < HISTOGRAM_BUCKETS; i++) {
-      const bucketCount = this.buckets[i];
+      const bucketCount = this.buckets[i]
       if (bucketCount !== undefined && bucketCount > 0) {
-        const bucketMidpoint = (i + 0.5) * BUCKET_WIDTH_US;
-        const diff = bucketMidpoint - mean;
-        sumSquaredDiff += diff * diff * bucketCount;
-        counted += bucketCount;
+        const bucketMidpoint = (i + 0.5) * BUCKET_WIDTH_US
+        const diff = bucketMidpoint - mean
+        sumSquaredDiff += diff * diff * bucketCount
+        counted += bucketCount
       }
     }
 
-    return Math.sqrt(sumSquaredDiff / counted);
+    return Math.sqrt(sumSquaredDiff / counted)
   }
 
   /**
@@ -147,7 +147,7 @@ export class Histogram {
       min: this.min,
       max: this.max,
       sum: this.sum
-    };
+    }
   }
 
   /**
@@ -156,21 +156,21 @@ export class Histogram {
    */
   import(data: HistogramData): void {
     for (let i = 0; i < HISTOGRAM_BUCKETS; i++) {
-      const current = this.buckets[i];
-      const incoming = data.buckets[i];
+      const current = this.buckets[i]
+      const incoming = data.buckets[i]
       if (current !== undefined) {
-        this.buckets[i] = current + (incoming ?? 0);
+        this.buckets[i] = current + (incoming ?? 0)
       }
     }
-    this.count += data.count;
-    this.sum += data.sum;
+    this.count += data.count
+    this.sum += data.sum
 
     if (data.count > 0) {
       if (data.min < this.min) {
-        this.min = data.min;
+        this.min = data.min
       }
       if (data.max > this.max) {
-        this.max = data.max;
+        this.max = data.max
       }
     }
   }
@@ -180,17 +180,17 @@ export class Histogram {
    * @param other - Histogram to merge
    */
   merge(other: Histogram): void {
-    this.import(other.export());
+    this.import(other.export())
   }
 
   /**
    * Resets all histogram data
    */
   reset(): void {
-    this.buckets.fill(0);
-    this.count = 0;
-    this.min = Number.MAX_SAFE_INTEGER;
-    this.max = 0;
-    this.sum = 0;
+    this.buckets.fill(0)
+    this.count = 0
+    this.min = Number.MAX_SAFE_INTEGER
+    this.max = 0
+    this.sum = 0
   }
 }

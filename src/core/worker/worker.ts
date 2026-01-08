@@ -1,17 +1,17 @@
-import { parentPort, workerData } from "node:worker_threads";
+import { parentPort, workerData } from 'node:worker_threads'
 
-import type { WorkerRequest, WorkerResponse } from "./messages.js";
-import type { WorkerConfig } from "../../types.js";
-import { RequestLoop } from "./loop.js";
+import type { WorkerRequest, WorkerResponse } from './messages.js'
+import type { WorkerConfig } from '../../types.js'
+import { RequestLoop } from './loop.js'
 
-let currentLoop: RequestLoop | null = null;
+let currentLoop: RequestLoop | null = null
 
 /**
  * Sends a message to the main thread
  * @param message - Response message
  */
 function sendMessage(message: WorkerResponse): void {
-  parentPort?.postMessage(message);
+  parentPort?.postMessage(message)
 }
 
 /**
@@ -19,20 +19,20 @@ function sendMessage(message: WorkerResponse): void {
  * @param config - Worker configuration
  */
 async function handleStart(config: WorkerConfig): Promise<void> {
-  currentLoop = new RequestLoop(config);
+  currentLoop = new RequestLoop(config)
 
-  currentLoop.onMetrics((snapshot) => {
-    sendMessage({ type: "metrics", payload: snapshot });
-  });
+  currentLoop.onMetrics(snapshot => {
+    sendMessage({ type: 'metrics', payload: snapshot })
+  })
 
   try {
-    const finalSnapshot = await currentLoop.run();
-    sendMessage({ type: "done", payload: finalSnapshot });
+    const finalSnapshot = await currentLoop.run()
+    sendMessage({ type: 'done', payload: finalSnapshot })
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown worker error";
-    sendMessage({ type: "error", workerId: config.id, message });
+    const message = err instanceof Error ? err.message : 'Unknown worker error'
+    sendMessage({ type: 'error', workerId: config.id, message })
   } finally {
-    currentLoop = null;
+    currentLoop = null
   }
 }
 
@@ -41,7 +41,7 @@ async function handleStart(config: WorkerConfig): Promise<void> {
  */
 function handleStop(): void {
   if (currentLoop !== null) {
-    currentLoop.stop();
+    currentLoop.stop()
   }
 }
 
@@ -51,16 +51,16 @@ function handleStop(): void {
  */
 function handleMessage(message: WorkerRequest): void {
   switch (message.type) {
-    case "start":
-      void handleStart(message.config);
-      break;
-    case "stop":
-      handleStop();
-      break;
+    case 'start':
+      void handleStart(message.config)
+      break
+    case 'stop':
+      handleStop()
+      break
   }
 }
 
-parentPort?.on("message", handleMessage);
+parentPort?.on('message', handleMessage)
 
-const initialWorkerId = (workerData as { workerId?: number } | undefined)?.workerId ?? 0;
-sendMessage({ type: "ready", workerId: initialWorkerId });
+const initialWorkerId = (workerData as { workerId?: number } | undefined)?.workerId ?? 0
+sendMessage({ type: 'ready', workerId: initialWorkerId })

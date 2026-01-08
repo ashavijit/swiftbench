@@ -1,20 +1,20 @@
-import { DEFAULT_WARMUP_SEC } from "../../constants.js";
+import { DEFAULT_WARMUP_SEC } from '../../constants.js'
 
 /**
  * Lifecycle phase
  */
-export type LifecyclePhase = "idle" | "warmup" | "running" | "cooldown" | "complete";
+export type LifecyclePhase = 'idle' | 'warmup' | 'running' | 'cooldown' | 'complete'
 
 /**
  * Lifecycle manager for benchmark phases
  */
 export class LifecycleManager {
-  private phase: LifecyclePhase = "idle";
-  private readonly warmupDuration: number;
-  private readonly mainDuration: number;
-  private startTime: number = 0;
-  private warmupEndTime: number = 0;
-  private mainEndTime: number = 0;
+  private phase: LifecyclePhase = 'idle'
+  private readonly warmupDuration: number
+  private readonly mainDuration: number
+  private startTime: number = 0
+  private warmupEndTime: number = 0
+  private mainEndTime: number = 0
 
   /**
    * Creates a lifecycle manager
@@ -22,22 +22,22 @@ export class LifecycleManager {
    * @param warmupSec - Warmup duration in seconds
    */
   constructor(durationSec: number, warmupSec: number = DEFAULT_WARMUP_SEC) {
-    this.warmupDuration = warmupSec * 1000;
-    this.mainDuration = durationSec * 1000;
+    this.warmupDuration = warmupSec * 1000
+    this.mainDuration = durationSec * 1000
   }
 
   /**
    * Starts the benchmark lifecycle
    */
   start(): void {
-    this.startTime = performance.now();
-    this.warmupEndTime = this.startTime + this.warmupDuration;
-    this.mainEndTime = this.warmupEndTime + this.mainDuration;
+    this.startTime = performance.now()
+    this.warmupEndTime = this.startTime + this.warmupDuration
+    this.mainEndTime = this.warmupEndTime + this.mainDuration
 
     if (this.warmupDuration > 0) {
-      this.phase = "warmup";
+      this.phase = 'warmup'
     } else {
-      this.phase = "running";
+      this.phase = 'running'
     }
   }
 
@@ -46,17 +46,17 @@ export class LifecycleManager {
    * @returns Current phase
    */
   update(): LifecyclePhase {
-    const now = performance.now();
+    const now = performance.now()
 
-    if (this.phase === "warmup" && now >= this.warmupEndTime) {
-      this.phase = "running";
+    if (this.phase === 'warmup' && now >= this.warmupEndTime) {
+      this.phase = 'running'
     }
 
-    if (this.phase === "running" && now >= this.mainEndTime) {
-      this.phase = "cooldown";
+    if (this.phase === 'running' && now >= this.mainEndTime) {
+      this.phase = 'cooldown'
     }
 
-    return this.phase;
+    return this.phase
   }
 
   /**
@@ -64,7 +64,7 @@ export class LifecycleManager {
    * @returns Current lifecycle phase
    */
   getPhase(): LifecyclePhase {
-    return this.phase;
+    return this.phase
   }
 
   /**
@@ -72,7 +72,7 @@ export class LifecycleManager {
    * @returns True if in main benchmark phase
    */
   isRunning(): boolean {
-    return this.phase === "running";
+    return this.phase === 'running'
   }
 
   /**
@@ -80,14 +80,14 @@ export class LifecycleManager {
    * @returns True if not complete
    */
   shouldContinue(): boolean {
-    return this.phase !== "complete" && this.phase !== "cooldown";
+    return this.phase !== 'complete' && this.phase !== 'cooldown'
   }
 
   /**
    * Marks lifecycle as complete
    */
   complete(): void {
-    this.phase = "complete";
+    this.phase = 'complete'
   }
 
   /**
@@ -95,7 +95,7 @@ export class LifecycleManager {
    * @returns Elapsed time since start
    */
   getElapsedMs(): number {
-    return performance.now() - this.startTime;
+    return performance.now() - this.startTime
   }
 
   /**
@@ -103,10 +103,10 @@ export class LifecycleManager {
    * @returns Remaining milliseconds
    */
   getRemainingMs(): number {
-    if (this.phase === "running") {
-      return Math.max(0, this.mainEndTime - performance.now());
+    if (this.phase === 'running') {
+      return Math.max(0, this.mainEndTime - performance.now())
     }
-    return 0;
+    return 0
   }
 
   /**
@@ -114,8 +114,8 @@ export class LifecycleManager {
    * @returns Progress from 0 to 100
    */
   getProgress(): number {
-    const now = performance.now();
-    const elapsed = now - this.warmupEndTime;
-    return Math.min(100, Math.max(0, (elapsed / this.mainDuration) * 100));
+    const now = performance.now()
+    const elapsed = now - this.warmupEndTime
+    return Math.min(100, Math.max(0, (elapsed / this.mainDuration) * 100))
   }
 }
