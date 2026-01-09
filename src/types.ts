@@ -32,6 +32,7 @@ export type BenchConfig = {
   outputFile?: string
   thresholds?: ThresholdConfig
   info?: boolean
+  inspect?: boolean
 }
 
 /**

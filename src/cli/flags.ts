@@ -30,6 +30,7 @@ export type ParsedFlags = {
   help: boolean
   version: boolean
   info: boolean
+  inspect: boolean
 }
 
 /**
@@ -99,7 +100,8 @@ export function parseFlags(args: string[]): ParsedFlags {
     compare: false,
     help: false,
     version: false,
-    info: false
+    info: false,
+    inspect: false
   }
 
   let i = 0
@@ -113,6 +115,12 @@ export function parseFlags(args: string[]): ParsedFlags {
 
     if (arg === '-h' || arg === '--help') {
       flags.help = true
+      i++
+      continue
+    }
+
+    if (arg === '--inspect') {
+      flags.inspect = true
       i++
       continue
     }
@@ -266,7 +274,8 @@ export function flagsToConfig(flags: ParsedFlags): BenchConfig | null {
     http2: flags.http2,
     output: flags.output,
     outputFile: flags.outputFile ?? undefined,
-    info: flags.info
+    info: flags.info,
+    inspect: flags.inspect
   }
 
   if (flags.body !== null) {

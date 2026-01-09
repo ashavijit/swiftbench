@@ -120,12 +120,117 @@ function checkThresholds(result: BenchResult, config: BenchConfig): number {
 }
 
 /**
+ * Runs inspect mode (single request with detailed output)
+ * @param config - Benchmark configuration
+ */
+async function runInspectMode(config: BenchConfig): Promise<void> {
+  const COLORS = {
+    reset: '\x1b[0m',
+    bold: '\x1b[1m',
+    dim: '\x1b[2m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    cyan: '\x1b[36m',
+    red: '\x1b[31m',
+    blue: '\x1b[34m',
+    magenta: '\x1b[35m'
+  } as const
+
+  printBanner()
+  info('Inspect Mode: Running single request...')
+
+  const url = new URL(config.url)
+  const method = config.method || 'GET'
+  const headers = config.headers || {}
+  
+  if (config.body && !headers['content-type']) {
+    headers['content-type'] = 'application/json'
+  }
+
+  process.stdout.write(`\n${COLORS.bold}► REQUEST${COLORS.reset}\n`)
+  process.stdout.write(`${COLORS.green}${method}${COLORS.reset} ${COLORS.cyan}${url.pathname}${url.search}${COLORS.reset} HTTP/1.1\n`)
+  process.stdout.write(`${COLORS.dim}Host:${COLORS.reset} ${url.host}\n`)
+  
+  for (const [key, value] of Object.entries(headers)) {
+    process.stdout.write(`${COLORS.dim}${key}:${COLORS.reset} ${value}\n`)
+  }
+  
+  if (config.body) {
+    process.stdout.write('\n')
+    const bodyStr = typeof config.body === 'string' ? config.body : JSON.stringify(config.body, null, 2)
+    process.stdout.write(`${bodyStr}\n`)
+  }
+
+  try {
+    const start = process.hrtime.bigint()
+    const response = await request(config.url, {
+      method: config.method || 'GET',
+      headers: config.headers,
+      body: config.body,
+      headersTimeout: config.timeout,
+      bodyTimeout: config.timeout
+    })
+    
+    // Buffer the body
+    let responseBody = ''
+    try {
+      responseBody = await response.body.text()
+    } catch {
+      responseBody = '(binary or empty)'
+    }
+    
+    const end = process.hrtime.bigint()
+    const duration = Number((end - start) / 1000000n)
+
+    // Print Response
+    process.stdout.write(`\n${COLORS.bold}◄ RESPONSE${COLORS.reset}\n`)
+    
+    // Status color
+    let statusColor: string = COLORS.green
+    if (response.statusCode >= 300) statusColor = COLORS.yellow
+    if (response.statusCode >= 400) statusColor = COLORS.red
+
+    process.stdout.write(`HTTP/1.1 ${statusColor}${response.statusCode}${COLORS.reset} ${COLORS.dim}(${duration.toFixed(2)}ms)${COLORS.reset}\n`)
+    
+    for (const [key, value] of Object.entries(response.headers)) {
+      if (!key) continue
+      process.stdout.write(`${COLORS.dim}${key}:${COLORS.reset} ${value}\n`)
+    }
+
+    process.stdout.write('\n')
+    
+    try {
+      if (response.headers['content-type']?.includes('application/json')) {
+        const jsonObj = JSON.parse(responseBody)
+        process.stdout.write(JSON.stringify(jsonObj, null, 2))
+      } else {
+        process.stdout.write(responseBody.substring(0, 2048))
+        if (responseBody.length > 2048) process.stdout.write(`\n${COLORS.dim}... (truncated)${COLORS.reset}`)
+      }
+    } catch {
+      process.stdout.write(responseBody.substring(0, 2048))
+    }
+    process.stdout.write('\n\n')
+
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    error(`Request failed: ${message}`)
+    process.exit(1)
+  }
+}
+
+/**
  * Runs the benchmark command
  * @param config - Benchmark configuration
  * @returns Exit code
  */
 export async function runCommand(config: BenchConfig): Promise<number> {
   printBanner()
+
+  if (config.inspect) {
+    await runInspectMode(config)
+    return EXIT_CODES.SUCCESS
+  }
 
   info(`Checking ${config.url}...`)
   const check = await checkReachability(config.url, config.timeout ?? DEFAULT_TIMEOUT_MS)
