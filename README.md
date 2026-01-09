@@ -30,7 +30,7 @@
 A fast, zero-config API benchmarking tool built for real traffic simulation, accurate latency metrics, and CI automation. Built with worker threads and `undici` for maximum performance.
 
 <p align="center">
-  <img src="assets/details.gif" alt="SwiftBench Demo" width="100%">
+  <video src="assets/demo.mp4" width="100%" controls autoplay loop muted></video>
 </p>
 
 ## Installation
@@ -108,8 +108,11 @@ const config = defineConfig({
 
 - **Worker Thread Architecture** - Utilizes all CPU cores for maximum load generation
 - **High-Performance HTTP** - Built on `undici` for efficient connection pooling
+- **Performance Grading** - Instant A+ to F rating based on latency and errors
 - **Accurate Latency Metrics** - Microsecond-precision timing with full percentile distribution
 - **Pre-flight Reachability Check** - Validates target before benchmarking
+- **Inspect Mode** - Debug requests/responses with `--inspect`
+- **DevTools Info** - Connection details (IP, Handshake, Server Headers) with `--info`
 - **Compare Mode** - Benchmark multiple URLs for framework comparison
 - **Rate Limiting** - Token bucket algorithm for controlled load
 - **CI Quality Gates** - Exit codes based on latency/error thresholds
@@ -136,6 +139,8 @@ const config = defineConfig({
 | `--p99 <ms>` | P99 latency threshold (CI) | - |
 | `--error-rate <rate>` | Error rate threshold 0-1 (CI) | - |
 | `--compare` | Compare multiple URLs | - |
+| `--info` | Show connection details (IP, Handshake) | - |
+| `--inspect` | Debug request/response | - |
 
 ## Output Formats
 
@@ -144,11 +149,28 @@ const config = defineConfig({
 Clean terminal output with styled tables:
 
 ```
-┌──────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────┐
-│   Stat   │   Min    │   p50    │   p90    │   p99    │   Avg    │  Stdev   │   Max    │
-├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
-│ Latency  │  110 µs  │  500 µs  │ 1.50 ms  │ 3.50 ms  │ 1.13 ms  │ 1.45 ms  │ 83.69 ms │
-└──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┘
+┌────────────────────────────────────────────────────────┐
+│                  ⚡ SwiftBench v0.1.0                   │
+└────────────────────────────────────────────────────────┘
+                Performance Grade: [ A+ ]
+
+  Target:    http://localhost:3000
+  Conns:     50 connections
+  Duration:  10s
+
+Latency Distribution
+────────────────────────────────────────────────────────
+  50%   500 µs    │██████████████
+  75%   500 µs    │██████████████
+  90%   500 µs    │██████████████
+  95%   500 µs    │██████████████
+  99%   1.50 ms   │████████████████████████████████████████
+
+┌──────────┬──────────┬──────────┬──────────┬──────────┬──────────┐
+│   Stat   │   Avg    │  Stdev   │   Max    │   P99    │  P99.9   │
+├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+│ Latency  │  350 µs  │  420 µs  │ 25.72 ms │ 1.50 ms  │ 1.50 ms  │
+└──────────┴──────────┴──────────┴──────────┴──────────┴──────────┘
 ```
 
 

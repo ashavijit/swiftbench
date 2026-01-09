@@ -128,6 +128,18 @@ function createTable(headers: string[], rows: string[][], widths: number[]): str
 }
 
 /**
+ * Calculates grade based on latency and error rate
+ */
+function calculateGrade(p99: number, errorRate: number): { grade: string; color: string } {
+  if (errorRate >= 10 || p99 >= 5000) return { grade: 'F', color: COLORS.red }
+  if (errorRate >= 5 || p99 >= 1000) return { grade: 'D', color: COLORS.red }
+  if (errorRate >= 1 || p99 >= 300) return { grade: 'C', color: COLORS.yellow }
+  if (errorRate >= 0.1 || p99 >= 100) return { grade: 'B', color: COLORS.blue }
+  if (p99 >= 50) return { grade: 'A', color: COLORS.green }
+  return { grade: 'A+', color: COLORS.green }
+}
+
+/**
  * Console reporter for terminal output
  */
 export class ConsoleReporter implements Reporter {
@@ -160,6 +172,13 @@ export class ConsoleReporter implements Reporter {
     lines.push(
       `${COLORS.cyan}└────────────────────────────────────────────────────────┘${COLORS.reset}`
     )
+    
+    // Performance Grade
+    const grade = calculateGrade(result.latency.p99, parseFloat(errorRate))
+    const gradeStr = ` Performance Grade: [ ${grade.color}${grade.grade}${COLORS.reset} ] `
+    const gradePadding = Math.floor((58 - stripAnsi(gradeStr).length) / 2)
+    lines.push(' '.repeat(gradePadding) + gradeStr)
+    
     lines.push('')
 
     lines.push(
