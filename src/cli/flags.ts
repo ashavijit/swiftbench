@@ -29,6 +29,7 @@ export type ParsedFlags = {
   compare: boolean
   help: boolean
   version: boolean
+  info: boolean
 }
 
 /**
@@ -56,6 +57,7 @@ OPTIONS:
   --http2                  Use HTTP/2
   --output <format>        Output format: console, json, html, csv
   -o <file>                Output file path
+  --info                   Show detailed server/connection info
   --p99 <ms>               P99 latency threshold for CI
   --error-rate <rate>      Error rate threshold (0-1) for CI
   --compare                Compare multiple URLs (framework comparison)
@@ -96,7 +98,8 @@ export function parseFlags(args: string[]): ParsedFlags {
     errorRateThreshold: null,
     compare: false,
     help: false,
-    version: false
+    version: false,
+    info: false
   }
 
   let i = 0
@@ -110,6 +113,12 @@ export function parseFlags(args: string[]): ParsedFlags {
 
     if (arg === '-h' || arg === '--help') {
       flags.help = true
+      i++
+      continue
+    }
+
+    if (arg === '--info') {
+      flags.info = true
       i++
       continue
     }
@@ -256,7 +265,8 @@ export function flagsToConfig(flags: ParsedFlags): BenchConfig | null {
     timeout: flags.timeout,
     http2: flags.http2,
     output: flags.output,
-    outputFile: flags.outputFile ?? undefined
+    outputFile: flags.outputFile ?? undefined,
+    info: flags.info
   }
 
   if (flags.body !== null) {

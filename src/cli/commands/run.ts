@@ -1,7 +1,8 @@
+import { lookup } from 'node:dns/promises'
 import { writeFileSync } from 'node:fs'
 import { request } from 'undici'
 
-import type { BenchConfig, BenchResult, Reporter } from '../../types.js'
+import type { BenchConfig, BenchResult, Reporter, DevToolsInfo } from '../../types.js'
 import { runBenchmark } from '../../core/orchestrator/orchestrator.js'
 import { createConsoleReporter } from '../../reporters/console.js'
 import { createJsonReporter } from '../../reporters/json.js'
@@ -29,23 +30,47 @@ function getReporter(format: string): Reporter {
 }
 
 /**
- * Checks if a URL is reachable
+ * Checks if a URL is reachable and collects info
  * @param url - URL to check
  * @param timeout - Timeout in milliseconds
- * @returns True if reachable, false otherwise
+ * @returns Reachability status and devtools info
  */
 async function checkReachability(
   url: string,
   timeout: number
-): Promise<{ reachable: boolean; statusCode?: number; error?: string }> {
+): Promise<{
+  reachable: boolean
+  statusCode?: number
+  error?: string
+  info?: DevToolsInfo
+}> {
   try {
+    const hostname = new URL(url).hostname
+    const ip = await lookup(hostname)
+      .then(r => r.address)
+      .catch(() => null)
+
+    const start = process.hrtime.bigint()
     const response = await request(url, {
       method: 'HEAD',
       headersTimeout: timeout,
       bodyTimeout: timeout
     })
+    const end = process.hrtime.bigint()
+    const handshakeTime = Number((end - start) / 1000000n) // Approximate
+
     await response.body.dump()
-    return { reachable: true, statusCode: response.statusCode }
+
+    const info: DevToolsInfo = {
+      ip,
+      server: (response.headers['server'] as string) || null,
+      poweredBy: (response.headers['x-powered-by'] as string) || null,
+      requestId:
+        ((response.headers['x-request-id'] || response.headers['request-id']) as string) || null,
+      handshakeTime
+    }
+
+    return { reachable: true, statusCode: response.statusCode, info }
   } catch (err: unknown) {
     if (err instanceof Error) {
       if (err.message.includes('ECONNREFUSED')) {
@@ -118,6 +143,12 @@ export async function runCommand(config: BenchConfig): Promise<number> {
 
   try {
     const result = await runBenchmark(config)
+
+    // Attach DevTools info if requested and available
+    if (config.info && check.info) {
+      result.devtools = check.info
+    }
+
     const reporter = getReporter(config.output ?? 'console')
     const output = await reporter.report(result)
 

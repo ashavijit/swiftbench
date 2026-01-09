@@ -31,6 +31,7 @@ export type BenchConfig = {
   output?: OutputFormat
   outputFile?: string
   thresholds?: ThresholdConfig
+  info?: boolean
 }
 
 /**
@@ -74,6 +75,17 @@ export type ErrorBreakdown = {
 }
 
 /**
+ * Detailed connection/server info
+ */
+export type DevToolsInfo = {
+  ip: string | null
+  server: string | null
+  poweredBy: string | null
+  requestId: string | null
+  handshakeTime: number | null
+}
+
+/**
  * Complete benchmark result
  */
 export type BenchResult = {
@@ -100,6 +112,7 @@ export type BenchResult = {
     nodeVersion: string
     platform: string
   }
+  devtools?: DevToolsInfo
 }
 
 /**

@@ -145,61 +145,116 @@ export class ConsoleReporter implements Reporter {
 
     lines.push('')
     lines.push(
-      `${COLORS.bold}${COLORS.green}SwiftBench${COLORS.reset} ${COLORS.dim}v${result.meta.version}${COLORS.reset}`
+      `${COLORS.cyan}┌────────────────────────────────────────────────────────┐${COLORS.reset}`
     )
-    lines.push(`Running ${result.duration}s test @ ${COLORS.cyan}${result.url}${COLORS.reset}`)
+
+    const visibleTitle = `⚡ SwiftBench v${result.meta.version}`
+    const boxWidth = 56
+    const padding = boxWidth - visibleTitle.length
+    const leftPad = Math.floor(padding / 2)
+    const rightPad = padding - leftPad
+
     lines.push(
-      `${result.connections} connections${result.rate !== null ? ` | ${formatNumber(result.rate)} req/s limit` : ''}`
+      `${COLORS.cyan}│${COLORS.reset}${' '.repeat(leftPad)}${COLORS.bold}${COLORS.green}⚡ SwiftBench${COLORS.reset} ${COLORS.dim}v${result.meta.version}${COLORS.reset}${' '.repeat(rightPad)}${COLORS.cyan}│${COLORS.reset}`
+    )
+    lines.push(
+      `${COLORS.cyan}└────────────────────────────────────────────────────────┘${COLORS.reset}`
     )
     lines.push('')
 
-    const latencyWidths = [10, 10, 10, 10, 10, 10, 10, 10]
-    const latencyHeaders = ['Stat', 'Min', 'p50', 'p90', 'p99', 'Avg', 'Stdev', 'Max']
+    lines.push(
+      `  ${COLORS.dim}Target:${COLORS.reset}    ${COLORS.cyan}${result.url}${COLORS.reset}`
+    )
+    lines.push(
+      `  ${COLORS.dim}Conns:${COLORS.reset}     ${COLORS.yellow}${result.connections}${COLORS.reset} connections`
+    )
+    lines.push(
+      `  ${COLORS.dim}Duration:${COLORS.reset}  ${COLORS.yellow}${result.duration}s${COLORS.reset}`
+    )
+    if (result.rate) {
+      lines.push(
+        `  ${COLORS.dim}Rate:${COLORS.reset}      ${COLORS.yellow}${formatNumber(result.rate)}${COLORS.reset} req/s`
+      )
+    }
+    lines.push('')
+
+    lines.push(`${COLORS.bold}Latency Distribution${COLORS.reset}`)
+    lines.push(
+      `${COLORS.dim}────────────────────────────────────────────────────────${COLORS.reset}`
+    )
+
+    const scale = result.latency.p99 > 0 ? result.latency.p99 : 1
+    const p50Bar = '█'.repeat(Math.ceil((result.latency.p50 / scale) * 40))
+    const p75Bar = '█'.repeat(Math.ceil((result.latency.p75 / scale) * 40))
+    const p90Bar = '█'.repeat(Math.ceil((result.latency.p90 / scale) * 40))
+    const p95Bar = '█'.repeat(Math.ceil((result.latency.p95 / scale) * 40))
+    const p99Bar = '█'.repeat(40) // p99 is the scale
+
+    lines.push(
+      `  50%   ${COLORS.green}${formatMsShort(result.latency.p50).padEnd(9)}${COLORS.reset} ${COLORS.dim}│${COLORS.reset}${COLORS.green}${p50Bar}${COLORS.reset}`
+    )
+    lines.push(
+      `  75%   ${COLORS.green}${formatMsShort(result.latency.p75).padEnd(9)}${COLORS.reset} ${COLORS.dim}│${COLORS.reset}${COLORS.green}${p75Bar}${COLORS.reset}`
+    )
+    lines.push(
+      `  90%   ${COLORS.yellow}${formatMsShort(result.latency.p90).padEnd(9)}${COLORS.reset} ${COLORS.dim}│${COLORS.reset}${COLORS.yellow}${p90Bar}${COLORS.reset}`
+    )
+    lines.push(
+      `  95%   ${COLORS.yellow}${formatMsShort(result.latency.p95).padEnd(9)}${COLORS.reset} ${COLORS.dim}│${COLORS.reset}${COLORS.yellow}${p95Bar}${COLORS.reset}`
+    )
+    lines.push(
+      `  99%   ${COLORS.red}${formatMsShort(result.latency.p99).padEnd(9)}${COLORS.reset} ${COLORS.dim}│${COLORS.reset}${COLORS.red}${p99Bar}${COLORS.reset}`
+    )
+    lines.push('')
+
+    if (result.devtools) {
+      lines.push(`${COLORS.bold}Connection Details${COLORS.reset}`)
+      lines.push(
+        `${COLORS.dim}────────────────────────────────────────────────────────${COLORS.reset}`
+      )
+      if (result.devtools.ip)
+        lines.push(
+          `  ${COLORS.dim}IP Address:${COLORS.reset}   ${COLORS.cyan}${result.devtools.ip}${COLORS.reset}`
+        )
+      if (result.devtools.server)
+        lines.push(`  ${COLORS.dim}Server:${COLORS.reset}       ${result.devtools.server}`)
+      if (result.devtools.poweredBy)
+        lines.push(`  ${COLORS.dim}Powered By:${COLORS.reset}   ${result.devtools.poweredBy}`)
+      if (result.devtools.requestId)
+        lines.push(`  ${COLORS.dim}Request ID:${COLORS.reset}   ${result.devtools.requestId}`)
+      if (result.devtools.handshakeTime !== null) {
+        lines.push(
+          `  ${COLORS.dim}Handshake:${COLORS.reset}    ~${result.devtools.handshakeTime.toFixed(2)}ms (approx)`
+        )
+      }
+      lines.push('')
+    }
+
+    const latencyWidths = [10, 10, 10, 10, 10, 10]
+    const latencyHeaders = ['Stat', 'Avg', 'Stdev', 'Max', 'P99', 'P99.9']
     const latencyRows = [
       [
         'Latency',
-        formatMsShort(result.latency.min),
-        formatMsShort(result.latency.p50),
-        formatMsShort(result.latency.p90),
-        formatMsShort(result.latency.p99),
         formatMsShort(result.latency.mean),
         formatMsShort(result.latency.stddev),
-        formatMsShort(result.latency.max)
+        formatMsShort(result.latency.max),
+        formatMsShort(result.latency.p99),
+        formatMsShort(result.latency.p999)
       ]
     ]
     lines.push(createTable(latencyHeaders, latencyRows, latencyWidths))
     lines.push('')
 
-    const throughputWidths = [12, 14, 14, 14]
-    const throughputHeaders = ['Stat', 'Avg/sec', 'Total', 'Duration']
-
-    const throughputRows = [
-      [
-        'Requests',
-        formatNumber(Math.round(result.throughput.rps)),
-        formatNumber(result.requests.total),
-        `${result.duration}s`
-      ],
-      [
-        'Transfer',
-        formatBytes(result.throughput.bytesPerSecond),
-        formatBytes(result.throughput.totalBytes),
-        `${result.duration}s`
-      ]
-    ]
-    lines.push(createTable(throughputHeaders, throughputRows, throughputWidths))
-    lines.push('')
-
     const summaryWidths = [15, 15, 15, 15]
-    const summaryHeaders = ['Total Reqs', 'Successful', 'Failed', 'Error Rate']
+    const summaryHeaders = ['Total Reqs', 'RPS', 'Transfer', 'Error Rate']
     const summaryRows = [
       [
         formatNumber(result.requests.total),
-        `${COLORS.green}${formatNumber(result.requests.successful)}${COLORS.reset}`,
-        result.requests.failed > 0
-          ? `${COLORS.red}${formatNumber(result.requests.failed)}${COLORS.reset}`
-          : '0',
-        parseFloat(errorRate) > 1 ? `${COLORS.red}${errorRate}%${COLORS.reset}` : `${errorRate}%`
+        `${COLORS.green}${formatNumber(Math.round(result.throughput.rps))}${COLORS.reset}`,
+        formatBytes(result.throughput.totalBytes),
+        parseFloat(errorRate) > 0
+          ? `${COLORS.red}${errorRate}%${COLORS.reset}`
+          : `${COLORS.green}0.00%${COLORS.reset}`
       ]
     ]
     lines.push(createTable(summaryHeaders, summaryRows, summaryWidths))
@@ -223,10 +278,8 @@ export class ConsoleReporter implements Reporter {
       lines.push('')
     }
 
-    lines.push(
-      `${COLORS.bold}${formatNumber(result.requests.total)}${COLORS.reset} requests in ${result.duration}s, ${formatBytes(result.throughput.totalBytes)} read`
-    )
-    lines.push(`${COLORS.dim}Completed at ${result.timestamp}${COLORS.reset}`)
+    // Result Footer
+    lines.push(`${COLORS.dim}Finished in ${result.duration}s${COLORS.reset}`)
     lines.push('')
 
     const output = lines.join('\n')
