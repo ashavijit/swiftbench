@@ -194,14 +194,14 @@ async function runInspectMode(config: BenchConfig): Promise<void> {
     
     for (const [key, value] of Object.entries(response.headers)) {
       if (!key) continue
-      process.stdout.write(`${COLORS.dim}${key}:${COLORS.reset} ${value}\n`)
+      process.stdout.write(`${COLORS.dim}${key}:${COLORS.reset} ${String(value)}\n`)
     }
 
     process.stdout.write('\n')
     
     try {
       if (response.headers['content-type']?.includes('application/json')) {
-        const jsonObj = JSON.parse(responseBody)
+        const jsonObj: unknown = JSON.parse(responseBody)
         process.stdout.write(JSON.stringify(jsonObj, null, 2))
       } else {
         process.stdout.write(responseBody.substring(0, 2048))
